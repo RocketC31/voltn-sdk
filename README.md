@@ -177,6 +177,33 @@ $file = $client->tus()->upload(
 );
 ```
 
+## Previewing and downloading from a browser
+
+Your OAuth2 access token must never reach a browser. Instead, the SDK
+asks Voltn for a single-purpose file token and returns a URL built
+around it, which you can hand to the front end:
+
+```php
+// Iframe `src` or new tab: Voltn renders PDFs, images and audio/video,
+// and redirects office documents to the configured editing platform.
+$previewUrl = $client->tokens()->previewUrl($fileId);
+
+// Direct download from Voltn: the content doesn't transit through your server.
+$downloadUrl = $client->tokens()->downloadUrl($fileId);
+```
+
+Each call generates a fresh token, so build these URLs on demand (e.g.
+in the controller that serves the page) rather than storing them. If you
+need the raw token, `createFileToken()` accepts a `FileTokenType`
+(`Preview`, `Edit` or `Download`):
+
+```php
+use RocketC31\Voltn\Model\FileTokenType;
+
+$token = $client->tokens()->createFileToken($fileId, FileTokenType::Edit);
+$token->getToken();
+```
+
 ## Impersonation
 
 If your application acts on behalf of other Voltn users, set a

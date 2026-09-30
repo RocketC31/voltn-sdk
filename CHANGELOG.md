@@ -19,6 +19,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `AuthenticationMiddleware` with transparent token refresh and retry-once-on-401.
 - `TokenStorage` interface with an `InMemoryTokenStorage` implementation.
 - Resource clients: `FolderClient`, `FileClient`, `RootClient`, `TokenClient`.
+- `TokenClient::previewUrl()` and `TokenClient::downloadUrl()`, which build
+  browser-safe URLs from single-purpose file tokens (`FileTokenType`:
+  `Preview`, `Edit`, `Download`).
 - Streaming upload/download support, including a minimal TUS 1.0
   (creation + core extensions) client for large-file uploads via
   `Upload\TusUploadManager`.
