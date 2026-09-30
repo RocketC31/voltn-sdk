@@ -1,0 +1,17 @@
+{
+    "id": 124,
+    "name": "contract.docx",
+    "folder_id": 42,
+    "size": 9999,
+    "hash": "098f6bcd4621d373cade4e832627b4f6",
+    "file_type": "document",
+    "lock": {
+        "user_id": 5,
+        "user_name": "Jane Doe",
+        "locked_at": "2026-01-01T09:00:00+00:00"
+    },
+    "can_read": true,
+    "can_write": false,
+    "can_delete": false,
+    "can_share": false
+}

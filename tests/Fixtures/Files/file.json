@@ -1,0 +1,15 @@
+{
+    "id": 123,
+    "name": "invoice.pdf",
+    "folder_id": 42,
+    "size": 45678,
+    "hash": "5d41402abc4b2a76b9719d911017c592",
+    "file_type": "document",
+    "created_at": "2025-01-15T10:30:00+00:00",
+    "last_modified": "2025-06-01T08:00:00+00:00",
+    "lock": null,
+    "can_read": true,
+    "can_write": true,
+    "can_delete": true,
+    "can_share": true
+}

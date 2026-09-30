@@ -1,0 +1,6 @@
+{
+    "roots": [
+        {"id": 1, "type": "personal", "name": "My Space"},
+        {"id": 2, "type": "shared", "name": "Team Space"}
+    ]
+}

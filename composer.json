@@ -1,0 +1,67 @@
+{
+    "name": "rocketc31/voltn-sdk",
+    "description": "Unofficial, framework-agnostic PHP SDK for the Voltn (formerly NetExplorer) file-storage API: OAuth2, folders, files, streamed and TUS uploads.",
+    "type": "library",
+    "license": "MIT",
+    "homepage": "https://github.com/RocketC31/voltn-sdk",
+    "support": {
+        "issues": "https://github.com/RocketC31/voltn-sdk/issues",
+        "source": "https://github.com/RocketC31/voltn-sdk"
+    },
+    "keywords": [
+        "voltn",
+        "netexplorer",
+        "sdk",
+        "api-client",
+        "file-storage",
+        "edm",
+        "psr-18"
+    ],
+    "authors": [
+        {
+            "name": "RocketC31",
+            "email": "87506281+RocketC31@users.noreply.github.com",
+            "homepage": "https://github.com/RocketC31"
+        }
+    ],
+    "require": {
+        "php": "^8.2",
+        "psr/http-client": "^1.0",
+        "psr/http-client-implementation": "^1.0",
+        "psr/http-factory": "^1.0",
+        "psr/http-factory-implementation": "^1.0",
+        "psr/http-message": "^1.1 || ^2.0",
+        "php-http/discovery": "^1.19"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.0",
+        "phpstan/phpstan": "^1.11",
+        "friendsofphp/php-cs-fixer": "^3.59",
+        "guzzlehttp/guzzle": "^7.9",
+        "guzzlehttp/psr7": "^2.7"
+    },
+    "autoload": {
+        "psr-4": {
+            "RocketC31\\Voltn\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "RocketC31\\Voltn\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "php-http/discovery": true
+        }
+    },
+    "scripts": {
+        "test": "phpunit",
+        "stan": "phpstan analyse",
+        "cs-check": "php-cs-fixer fix --dry-run --diff",
+        "cs-fix": "php-cs-fixer fix"
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

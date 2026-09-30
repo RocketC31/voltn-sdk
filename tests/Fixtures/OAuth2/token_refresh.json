@@ -1,0 +1,7 @@
+{
+    "access_token": "refreshed-access-token",
+    "refresh_token": "new-refresh-token",
+    "scope": "all",
+    "token_type": "Bearer",
+    "expires_in": 3600
+}

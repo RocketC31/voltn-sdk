@@ -1,0 +1,7 @@
+{
+    "id": 99,
+    "name": "New Folder",
+    "parent_id": 1,
+    "can_read": true,
+    "can_write": true
+}

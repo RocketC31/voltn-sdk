@@ -1,0 +1,7 @@
+{
+    "access_token": "ac-access-token",
+    "refresh_token": "ac-refresh-token",
+    "scope": "all",
+    "token_type": "Bearer",
+    "expires_in": 7200
+}

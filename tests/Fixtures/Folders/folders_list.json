@@ -1,0 +1,18 @@
+{
+    "folders": [
+        {
+            "id": 1,
+            "name": "Personal",
+            "parent_id": null,
+            "can_read": true,
+            "can_write": true
+        },
+        {
+            "id": 2,
+            "name": "Shared",
+            "parent_id": null,
+            "can_read": true,
+            "can_write": false
+        }
+    ]
+}

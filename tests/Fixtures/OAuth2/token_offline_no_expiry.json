@@ -1,0 +1,6 @@
+{
+    "access_token": "offline-access-token",
+    "refresh_token": "offline-refresh-token",
+    "scope": "offline",
+    "token_type": "Bearer"
+}
