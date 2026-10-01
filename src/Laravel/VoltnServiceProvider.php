@@ -32,7 +32,7 @@ use RocketC31\Voltn\Flysystem\VoltnAdapter;
  * ```
  *
  * Optional keys: `chunked_upload_threshold` and `chunk_size` (bytes),
- * `timeout` (seconds, default 30) and `connect_timeout` (seconds, default 5).
+ * `timeout` (seconds, default 300: it covers the whole transfer, uploads included) and `connect_timeout` (seconds, default 5).
  * The access token is cached (encrypted) in the default cache store through
  * {@see CacheTokenStorage}.
  */
@@ -40,7 +40,7 @@ final class VoltnServiceProvider extends ServiceProvider
 {
     public const DRIVER = 'voltn';
 
-    private const DEFAULT_TIMEOUT = 30.0;
+    private const DEFAULT_TIMEOUT = 300.0;
 
     private const DEFAULT_CONNECT_TIMEOUT = 5.0;
 

@@ -304,7 +304,7 @@ auto-discovery) when `illuminate/support` and `illuminate/filesystem`
         // Optional:
         // 'chunked_upload_threshold' => 52428800,     // bytes, TUS above this
         // 'chunk_size' => 8388608,                    // bytes per TUS chunk
-        // 'timeout' => 30,                            // seconds, per HTTP request
+        // 'timeout' => 300,                           // seconds per HTTP request, transfer included (0 = none)
         // 'connect_timeout' => 5,                     // seconds
     ],
 ],
