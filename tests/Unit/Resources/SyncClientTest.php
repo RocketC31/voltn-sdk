@@ -104,7 +104,7 @@ final class SyncClientTest extends TestCase
 
         self::assertSame('Documents/Partagé/informations_diverses.docx', $path);
         self::assertSame(
-            'https://tenant.example.test/api/objectpath?root=1&object_type=file&object_id=123',
+            'https://tenant.example.test/api/objectpath?root=1&object_type=Fichier&object_id=123',
             (string) $factory->getLastRequest()?->getUri(),
         );
     }

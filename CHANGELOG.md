@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-01
+
 ### Added
 
 - `SyncClient` (`$client->sync()`): `folderAt()` / `fileAt()` (`GET /path`),
@@ -39,5 +41,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Defensive exception hierarchy (`Exception\*`) mapping HTTP status codes to
   typed exceptions without assuming a fixed error response body shape.
 
-[Unreleased]: https://github.com/RocketC31/voltn-sdk/compare/0.1.0...HEAD
+[Unreleased]: https://github.com/RocketC31/voltn-sdk/compare/0.2.0...HEAD
+[0.2.0]: https://github.com/RocketC31/voltn-sdk/compare/0.1.0...0.2.0
 [0.1.0]: https://github.com/RocketC31/voltn-sdk/releases/tag/0.1.0
