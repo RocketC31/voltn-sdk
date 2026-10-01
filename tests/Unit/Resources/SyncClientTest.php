@@ -46,17 +46,20 @@ final class SyncClientTest extends TestCase
     public function testFolderAtWithEmptyPathTargetsTheRoot(): void
     {
         $factory = new MockTransportFactory();
-        $factory->queueJson(200, ['object' => ['id' => 7, 'name' => 'Racine']]);
+        $factory->queueJson(200, ['id' => 7, 'name' => 'Racine']);
 
-        $this->makeClient($factory)->folderAt(7, '');
+        $folder = $this->makeClient($factory)->folderAt(7, '');
 
-        self::assertStringEndsWith('path=%2F', (string) $factory->getLastRequest()?->getUri());
+        // GET /path answers 404 for "/": the root is read directly.
+        self::assertSame(7, $folder->getId());
+        self::assertSame('https://tenant.example.test/api/folder/7', (string) $factory->getLastRequest()?->getUri());
     }
 
     public function testFileAtStripsSlashesAndReturnsFile(): void
     {
         $factory = new MockTransportFactory();
-        $factory->queueJson(200, ['object' => ['id' => 99, 'name' => 'é.zip', 'folder_id' => 1458, 'size' => 10]]);
+        // Real platform shape: unwrapped object, parent folder in `parent_id`.
+        $factory->queueJson(200, ['id' => 99, 'name' => 'é.zip', 'parent_id' => 1458, 'size' => 10, 'guid' => 'abc']);
 
         $file = $this->makeClient($factory)->fileAt(7, '/backups/é.zip');
 
@@ -66,6 +69,24 @@ final class SyncClientTest extends TestCase
             'https://tenant.example.test/api/path?root=7&path=backups%2F%C3%A9.zip',
             (string) $factory->getLastRequest()?->getUri(),
         );
+    }
+
+    public function testFileAtRefusesAFolderMatchedWithoutTrailingSlash(): void
+    {
+        $factory = new MockTransportFactory();
+        $factory->queueJson(200, ['id' => 11132, 'name' => 'Laravel', 'parent_id' => 11129, 'flags' => 0]);
+
+        $this->expectException(NotFoundException::class);
+
+        $this->makeClient($factory)->fileAt(7, 'Laravel');
+    }
+
+    public function testDocumentedWrappedShapeIsStillAccepted(): void
+    {
+        $factory = new MockTransportFactory();
+        $factory->queueJson(200, ['object' => ['id' => 1458, 'name' => '2026']]);
+
+        self::assertSame(1458, $this->makeClient($factory)->folderAt(7, '2026')->getId());
     }
 
     public function testFileAtRejectsAnEmptyPath(): void

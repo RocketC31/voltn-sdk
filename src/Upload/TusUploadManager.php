@@ -198,7 +198,11 @@ final class TusUploadManager
 
             $response = $this->tusTransport->dispatch($request);
 
-            if ($response->getStatusCode() !== 204) {
+            // TUS specifies 204 No Content, but Voltn answers 200 (with a
+            // "204" body): accept any 2xx and rely on Upload-Offset.
+            $status = $response->getStatusCode();
+
+            if ($status < 200 || $status >= 300) {
                 throw ExceptionFactory::fromResponse($response, $request);
             }
 

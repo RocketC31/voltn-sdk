@@ -79,6 +79,28 @@ final class TusUploadManagerTest extends TestCase
         self::assertSame(['token' => 'session-abc'], json_decode((string) $requests[3]->getBody(), true));
     }
 
+    public function testChunkAcknowledgedWith200AndUploadOffsetIsAccepted(): void
+    {
+        // Voltn answers PATCH with 200 and a "204" JSON body instead of 204 No Content.
+        $factory = new MockTransportFactory();
+        $factory->queueJson(200, ['token' => 'session-abc']);
+        $factory->queueResponse(201, '', ['Location' => '/upload-xyz']);
+        $factory->queueResponse(200, '204', ['Upload-Offset' => '10', 'Content-Type' => 'application/json']);
+        $factory->queueResponse(200, '204', ['Upload-Offset' => '20', 'Content-Type' => 'application/json']);
+        $factory->queueJson(200, ['id' => 1]);
+
+        $file = $this->makeManager($factory)->upload(
+            1,
+            'file.bin',
+            $factory->getStreamFactory()->createStream(str_repeat('c', 20)),
+            20,
+            new UploadOptions(chunkSize: 10),
+        );
+
+        self::assertSame(1, $file->getId());
+        self::assertSame(5, $factory->count());
+    }
+
     public function testUploadSendsMultipleChunksWhenContentExceedsChunkSize(): void
     {
         $factory = new MockTransportFactory();

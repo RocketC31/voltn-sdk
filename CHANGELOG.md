@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-01
+
 ### Added
 
 - Flysystem v3 adapter `Flysystem\VoltnAdapter` (optional, requires
@@ -21,6 +23,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   e.g. as a `spatie/laravel-backup` destination.
 - `Laravel\CacheTokenStorage`: a `TokenStorage` keeping the access token,
   encrypted, in a Laravel cache repository until shortly before it expires.
+
+### Fixed
+
+Found while testing against a real Voltn platform:
+
+- Files: the parent folder is read from `parent_id` (the API does not send
+  `folder_id`), so `File::getFolderId()` is no longer always null.
+- Files, folders and versions: dates are read from `creation` /
+  `modification` (the API does not send `created_at` / `last_modified`).
+- `SyncClient`: `GET /path` returns the object itself, not wrapped in
+  `{"object": …}` as documented (both are accepted); the root folder is read
+  via `GET /folder/{id}` since `GET /path` answers 404 for `/`; `fileAt()`
+  no longer returns a folder matched without trailing slash.
+- TUS: chunks acknowledged with `200` (Voltn) instead of `204` are accepted,
+  relying on `Upload-Offset`.
 
 ## [0.2.0] - 2026-10-01
 
@@ -56,6 +73,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Defensive exception hierarchy (`Exception\*`) mapping HTTP status codes to
   typed exceptions without assuming a fixed error response body shape.
 
-[Unreleased]: https://github.com/RocketC31/voltn-sdk/compare/0.2.0...HEAD
+[Unreleased]: https://github.com/RocketC31/voltn-sdk/compare/0.3.0...HEAD
+[0.3.0]: https://github.com/RocketC31/voltn-sdk/compare/0.2.0...0.3.0
 [0.2.0]: https://github.com/RocketC31/voltn-sdk/compare/0.1.0...0.2.0
 [0.1.0]: https://github.com/RocketC31/voltn-sdk/releases/tag/0.1.0

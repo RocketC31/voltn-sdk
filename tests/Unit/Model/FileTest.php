@@ -130,4 +130,22 @@ final class FileTest extends TestCase
         self::assertSame('00000-0000-00000-00000', File::fromArray(['id' => 1, 'guid' => '00000-0000-00000-00000'])->getGuid());
         self::assertNull(File::fromArray(['id' => 1])->getGuid());
     }
+
+    public function testRealPlatformKeysAreMapped(): void
+    {
+        // Shape actually returned by GET /file/(id) and folder listings.
+        $file = File::fromArray([
+            'id' => 154876,
+            'creation' => '2026-10-01T16:35:17+00:00',
+            'modification' => '2026-10-01T16:40:00+00:00',
+            'parent_id' => 11129,
+            'size' => 20971520,
+            'guid' => '6abe8bc5-4d28-4ab3-8c99-62ca034779aa',
+            'name' => 'tus-trace.bin',
+        ]);
+
+        self::assertSame(11129, $file->getFolderId());
+        self::assertSame('2026-10-01T16:35:17+00:00', $file->getCreatedAt()?->format(DATE_ATOM));
+        self::assertSame('2026-10-01T16:40:00+00:00', $file->lastModified()?->format(DATE_ATOM));
+    }
 }

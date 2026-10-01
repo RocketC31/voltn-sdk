@@ -50,13 +50,14 @@ final class File
             id: DtoHelper::intOrString($data['id'] ?? null) ?? 0,
             name: DtoHelper::nullableString($data['name'] ?? null) ?? '',
             guid: DtoHelper::nullableString($data['guid'] ?? null),
-            folderId: DtoHelper::intOrString($data['folder_id'] ?? $data['folderId'] ?? null),
+            // The API returns `parent_id`; `folder_id` is kept as a fallback.
+            folderId: DtoHelper::intOrString($data['parent_id'] ?? $data['folder_id'] ?? $data['folderId'] ?? null),
             size: DtoHelper::nullableInt($data['size'] ?? null),
             hash: DtoHelper::nullableString($data['hash'] ?? null),
             fileType: DtoHelper::nullableString($data['file_type'] ?? $data['fileType'] ?? null),
-            createdAt: DtoHelper::nullableDate($data['created_at'] ?? $data['createdAt'] ?? null),
+            createdAt: DtoHelper::nullableDate($data['creation'] ?? $data['created_at'] ?? $data['createdAt'] ?? null),
             lastModified: DtoHelper::nullableDate(
-                $data['last_modified'] ?? $data['updated_at'] ?? $data['updatedAt'] ?? null,
+                $data['modification'] ?? $data['last_modified'] ?? $data['updated_at'] ?? $data['updatedAt'] ?? null,
             ),
             lock: is_array($lockData) ? LockInfo::fromArray($lockData) : null,
             canRead: DtoHelper::boolOrDefault($data['can_read'] ?? null, true),

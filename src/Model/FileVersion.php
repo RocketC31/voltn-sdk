@@ -33,7 +33,7 @@ final class FileVersion
             versionNumber: DtoHelper::nullableInt($data['version'] ?? $data['version_number'] ?? null),
             size: DtoHelper::nullableInt($data['size'] ?? null),
             hash: DtoHelper::nullableString($data['hash'] ?? null),
-            createdAt: DtoHelper::nullableDate($data['created_at'] ?? $data['createdAt'] ?? null),
+            createdAt: DtoHelper::nullableDate($data['creation'] ?? $data['created_at'] ?? $data['createdAt'] ?? null),
             createdBy: DtoHelper::intOrString($data['created_by'] ?? $data['createdBy'] ?? null),
         );
     }

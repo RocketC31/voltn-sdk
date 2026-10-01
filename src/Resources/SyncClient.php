@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace RocketC31\Voltn\Resources;
 
 use InvalidArgumentException;
+use RocketC31\Voltn\Exception\NotFoundException;
 use RocketC31\Voltn\Exception\UnexpectedResponseException;
 use RocketC31\Voltn\Http\ExceptionFactory;
 use RocketC31\Voltn\Http\HttpTransport;
@@ -36,7 +37,15 @@ final class SyncClient
     {
         $path = self::normalize($path);
 
-        return Folder::fromArray($this->lookup($rootFolderId, $path === '' ? '/' : $path . '/'));
+        // `GET /path` answers 404 for the root itself ("/"): read it directly.
+        if ($path === '') {
+            return Folder::fromArray($this->transport->sendForJson(
+                'GET',
+                sprintf('/folder/%s', rawurlencode((string) $rootFolderId)),
+            ) ?? []);
+        }
+
+        return Folder::fromArray($this->lookup($rootFolderId, $path . '/'));
     }
 
     /**
@@ -52,7 +61,15 @@ final class SyncClient
             throw new InvalidArgumentException('A file path cannot be empty.');
         }
 
-        return File::fromArray($this->lookup($rootFolderId, $path));
+        $object = $this->lookup($rootFolderId, $path);
+
+        // Without a trailing "/" the platform also matches folders: only file
+        // objects carry a size / guid.
+        if (!array_key_exists('size', $object) && !array_key_exists('guid', $object)) {
+            throw new NotFoundException(sprintf('No file at "%s" (a folder exists there).', $path), 404);
+        }
+
+        return File::fromArray($object);
     }
 
     /**
@@ -113,9 +130,12 @@ final class SyncClient
     private function lookup(int|string $rootFolderId, string $path): array
     {
         $data = $this->transport->sendForJson('GET', '/path', ['root' => $rootFolderId, 'path' => $path]);
-        $object = $data['object'] ?? null;
 
-        if (!is_array($object)) {
+        // The platform returns the object itself; the documentation shows it
+        // wrapped in {"object": …}: accept both.
+        $object = isset($data['object']) && is_array($data['object']) ? $data['object'] : $data;
+
+        if (!is_array($object) || !isset($object['id'])) {
             throw new UnexpectedResponseException('The /path endpoint returned no object.');
         }
 

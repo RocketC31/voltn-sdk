@@ -64,7 +64,19 @@ final class VoltnAdapterTest extends TestCase
      */
     private function queueObject(array $object): void
     {
-        $this->factory->queueJson(200, ['object' => $object]);
+        // Real platform shape: the object itself, not wrapped in {"object": …}.
+        $this->factory->queueJson(200, $object);
+    }
+
+    /**
+     * A file object as returned by the platform (files carry size and guid,
+     * folders don't).
+     *
+     * @param array<string, mixed> $object
+     */
+    private function queueFile(array $object): void
+    {
+        $this->queueObject($object + ['size' => 1, 'guid' => 'g-' . (string) ($object['id'] ?? 'x'), 'parent_id' => self::ROOT]);
     }
 
     private function queueNotFound(): void
@@ -93,7 +105,7 @@ final class VoltnAdapterTest extends TestCase
 
     public function testFileExistsIsTrueWhenThePathResolves(): void
     {
-        $this->queueObject(['id' => 99, 'name' => 'x.zip']);
+        $this->queueFile(['id' => 99, 'name' => 'x.zip']);
 
         self::assertTrue($this->makeAdapter()->fileExists('/backups/x.zip'));
         self::assertSame(['GET ' . self::pathUri('backups/x.zip')], $this->requestLines());
@@ -300,7 +312,7 @@ final class VoltnAdapterTest extends TestCase
 
     public function testReadReturnsTheContents(): void
     {
-        $this->queueObject(['id' => 99, 'name' => 'x.txt']);
+        $this->queueFile(['id' => 99, 'name' => 'x.txt']);
         $this->factory->queueResponse(200, 'file-content');
 
         self::assertSame('file-content', $this->makeAdapter()->read('dir/x.txt'));
@@ -312,7 +324,7 @@ final class VoltnAdapterTest extends TestCase
 
     public function testReadStreamReturnsAResource(): void
     {
-        $this->queueObject(['id' => 99, 'name' => 'x.txt']);
+        $this->queueFile(['id' => 99, 'name' => 'x.txt']);
         $this->factory->queueResponse(200, 'file-content');
 
         $resource = $this->makeAdapter()->readStream('x.txt');
@@ -336,7 +348,7 @@ final class VoltnAdapterTest extends TestCase
 
     public function testReadStreamWrapsErrors(): void
     {
-        $this->queueObject(['id' => 99]);
+        $this->queueFile(['id' => 99]);
         $this->factory->queueResponse(500);
 
         $this->expectException(UnableToReadFile::class);
@@ -346,7 +358,7 @@ final class VoltnAdapterTest extends TestCase
 
     public function testDeleteSendsToTrashByDefault(): void
     {
-        $this->queueObject(['id' => 99]);
+        $this->queueFile(['id' => 99]);
         $this->factory->queueResponse(204);
 
         $this->makeAdapter()->delete('x.zip');
@@ -356,7 +368,7 @@ final class VoltnAdapterTest extends TestCase
 
     public function testDeleteIsPermanentWhenTrashIsDisabled(): void
     {
-        $this->queueObject(['id' => 99]);
+        $this->queueFile(['id' => 99]);
         $this->factory->queueResponse(204);
 
         $this->makeAdapter(trash: false)->delete('x.zip');
@@ -375,7 +387,7 @@ final class VoltnAdapterTest extends TestCase
 
     public function testDeleteWrapsOtherErrors(): void
     {
-        $this->queueObject(['id' => 99]);
+        $this->queueFile(['id' => 99]);
         $this->factory->queueResponse(403);
 
         $this->expectException(UnableToDeleteFile::class);
@@ -473,7 +485,7 @@ final class VoltnAdapterTest extends TestCase
 
     public function testMimeTypeComesFromTheExtension(): void
     {
-        $this->queueObject(['id' => 99, 'name' => 'report.pdf']);
+        $this->queueFile(['id' => 99, 'name' => 'report.pdf']);
 
         $attributes = $this->makeAdapter()->mimeType('docs/report.pdf');
 
@@ -493,7 +505,7 @@ final class VoltnAdapterTest extends TestCase
 
     public function testMimeTypeOfAnUnknownExtensionThrows(): void
     {
-        $this->queueObject(['id' => 99]);
+        $this->queueFile(['id' => 99]);
 
         $this->expectException(UnableToRetrieveMetadata::class);
 
@@ -502,9 +514,9 @@ final class VoltnAdapterTest extends TestCase
 
     public function testFileSizeAndLastModified(): void
     {
-        $object = ['id' => 99, 'size' => 45678, 'last_modified' => '2025-06-01T08:00:00+00:00'];
-        $this->queueObject($object);
-        $this->queueObject($object);
+        $object = ['id' => 99, 'size' => 45678, 'modification' => '2025-06-01T08:00:00+00:00'];
+        $this->queueFile($object);
+        $this->queueFile($object);
 
         $adapter = $this->makeAdapter();
 
@@ -514,8 +526,9 @@ final class VoltnAdapterTest extends TestCase
 
     public function testMissingMetadataThrows(): void
     {
-        $this->queueObject(['id' => 99]);
-        $this->queueObject(['id' => 99]);
+        // A file object (it has a guid) without size nor dates.
+        $this->queueObject(['id' => 99, 'guid' => 'g-99']);
+        $this->queueObject(['id' => 99, 'guid' => 'g-99']);
         $this->queueNotFound();
 
         $adapter = $this->makeAdapter();
@@ -607,7 +620,7 @@ final class VoltnAdapterTest extends TestCase
 
     public function testCopyStreamsTheSourceIntoTheDestination(): void
     {
-        $this->queueObject(['id' => 99, 'name' => 'a.txt', 'size' => 7]);    // fileAt source
+        $this->queueFile(['id' => 99, 'name' => 'a.txt', 'size' => 7]);    // fileAt source
         $this->factory->queueResponse(200, 'content');                        // download
         $this->queueObject(['id' => 50, 'name' => 'dest']);                   // folderAt dest
         $this->factory->queueJson(200, ['id' => 100]);                        // upload
@@ -637,7 +650,7 @@ final class VoltnAdapterTest extends TestCase
 
     public function testMoveCopiesThenDeletesTheSource(): void
     {
-        $this->queueObject(['id' => 99, 'name' => 'a.txt', 'size' => 7]);
+        $this->queueFile(['id' => 99, 'name' => 'a.txt', 'size' => 7]);
         $this->factory->queueResponse(200, 'content');
         $this->factory->queueJson(200, ['id' => 100]);
         $this->factory->queueResponse(204);
@@ -654,12 +667,20 @@ final class VoltnAdapterTest extends TestCase
 
     public function testMoveWrapsErrors(): void
     {
-        $this->queueObject(['id' => 99, 'name' => 'a.txt', 'size' => 7]);
+        $this->queueFile(['id' => 99, 'name' => 'a.txt', 'size' => 7]);
         $this->factory->queueResponse(200, 'content');
         $this->factory->queueResponse(500);
 
         $this->expectException(UnableToMoveFile::class);
 
         $this->makeAdapter()->move('a.txt', 'b.txt', new Config());
+    }
+
+    public function testFileExistsIsFalseWhenAFolderSitsAtThatPath(): void
+    {
+        // Without a trailing "/" the platform also matches folders.
+        $this->queueObject(['id' => 12, 'name' => 'backups', 'flags' => 0]);
+
+        self::assertFalse($this->makeAdapter()->fileExists('backups'));
     }
 }
