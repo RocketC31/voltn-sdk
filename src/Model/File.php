@@ -23,6 +23,7 @@ final class File
     private function __construct(
         private readonly int|string $id,
         private readonly string $name,
+        private readonly ?string $guid,
         private readonly int|string|null $folderId,
         private readonly ?int $size,
         private readonly ?string $hash,
@@ -48,6 +49,7 @@ final class File
         return new self(
             id: DtoHelper::intOrString($data['id'] ?? null) ?? 0,
             name: DtoHelper::nullableString($data['name'] ?? null) ?? '',
+            guid: DtoHelper::nullableString($data['guid'] ?? null),
             folderId: DtoHelper::intOrString($data['folder_id'] ?? $data['folderId'] ?? null),
             size: DtoHelper::nullableInt($data['size'] ?? null),
             hash: DtoHelper::nullableString($data['hash'] ?? null),
@@ -76,6 +78,16 @@ final class File
     public function getName(): string
     {
         return $this->name;
+    }
+
+    /**
+     * Global identifier shared by all versions of the file: unlike the id,
+     * which designates one version, the guid always leads to the file as a
+     * whole (e.g. to reach its latest version).
+     */
+    public function getGuid(): ?string
+    {
+        return $this->guid;
     }
 
     public function getFolderId(): int|string|null

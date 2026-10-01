@@ -13,6 +13,7 @@ use RocketC31\Voltn\Http\HttpTransport;
 use RocketC31\Voltn\Resources\FileClient;
 use RocketC31\Voltn\Resources\FolderClient;
 use RocketC31\Voltn\Resources\RootClient;
+use RocketC31\Voltn\Resources\SyncClient;
 use RocketC31\Voltn\Resources\TokenClient;
 use RocketC31\Voltn\Upload\TusUploadManager;
 
@@ -37,6 +38,8 @@ final class Client
 
     private TokenClient $tokens;
 
+    private SyncClient $sync;
+
     private TusUploadManager $tus;
 
     public function __construct(
@@ -51,6 +54,7 @@ final class Client
         $this->files = new FileClient($this->transport);
         $this->roots = new RootClient($this->transport);
         $this->tokens = new TokenClient($this->transport);
+        $this->sync = new SyncClient($this->transport);
         $this->tus = new TusUploadManager($this->transport, $this->tusTransport, $this->requestFactory, $this->streamFactory);
     }
 
@@ -72,6 +76,11 @@ final class Client
     public function tokens(): TokenClient
     {
         return $this->tokens;
+    }
+
+    public function sync(): SyncClient
+    {
+        return $this->sync;
     }
 
     public function tus(): TusUploadManager

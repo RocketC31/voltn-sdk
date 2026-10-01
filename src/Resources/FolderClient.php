@@ -92,9 +92,17 @@ final class FolderClient
         return Folder::fromArray($data ?? []);
     }
 
-    public function delete(int|string $folderId): void
+    /**
+     * Delete a folder. By default it goes to the trash (recoverable); pass
+     * `trash: false` to delete it permanently.
+     */
+    public function delete(int|string $folderId, bool $trash = true): void
     {
-        $this->transport->sendForJson('DELETE', sprintf('/folder/%s', rawurlencode((string) $folderId)));
+        $this->transport->sendForJson(
+            'DELETE',
+            sprintf('/folder/%s', rawurlencode((string) $folderId)),
+            $trash ? null : ['trash' => 0],
+        );
     }
 
     /**

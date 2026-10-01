@@ -9,6 +9,7 @@ use RocketC31\Voltn\Exception\NotFoundException;
 use RocketC31\Voltn\Http\HttpTransport;
 use RocketC31\Voltn\Http\MultipartFilePart;
 use RocketC31\Voltn\Model\File;
+use RocketC31\Voltn\Model\FileVersionScope;
 
 /**
  * `$client->files()`: read/upload/download/update/delete Voltn
@@ -102,9 +103,28 @@ final class FileClient
         return File::fromArray($data ?? []);
     }
 
-    public function delete(int|string $fileId): void
+    /**
+     * Delete a file. By default it goes to the trash (recoverable) with all
+     * of its versions; pass `trash: false` to delete it permanently, and
+     * `$versions` to only affect some versions.
+     */
+    public function delete(int|string $fileId, bool $trash = true, FileVersionScope $versions = FileVersionScope::All): void
     {
-        $this->transport->sendForJson('DELETE', sprintf('/file/%s', rawurlencode((string) $fileId)));
+        $query = [];
+
+        if (!$trash) {
+            $query['trash'] = 0;
+        }
+
+        if ($versions !== FileVersionScope::All) {
+            $query['versions'] = $versions->value;
+        }
+
+        $this->transport->sendForJson(
+            'DELETE',
+            sprintf('/file/%s', rawurlencode((string) $fileId)),
+            $query !== [] ? $query : null,
+        );
     }
 
     /**

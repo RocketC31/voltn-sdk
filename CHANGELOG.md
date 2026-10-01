@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `SyncClient` (`$client->sync()`): `folderAt()` / `fileAt()` (`GET /path`),
+  `objectPath()` (`GET /objectpath`), `isChildOf()` (`GET /ischildof`) and
+  `quotas()` (`GET /quotas`), with the `ObjectType`, `Quotas` and
+  `QuotaUsage` models.
+- Permanent deletion: `FileClient::delete(..., trash: false)` and
+  `FolderClient::delete(..., trash: false)`; `FileVersionScope` to choose
+  which versions of a file are deleted.
+- `File::getGuid()`, shared by all versions of a file.
+
 ## [0.1.0] - 2026-10-01
 
 ### Added

@@ -204,6 +204,47 @@ $token = $client->tokens()->createFileToken($fileId, FileTokenType::Edit);
 $token->getToken();
 ```
 
+## Path-based lookups and quotas
+
+`$client->sync()` wraps Voltn's synchronisation endpoints, which let you
+address items by path instead of walking folders id by id:
+
+```php
+use RocketC31\Voltn\Model\ObjectType;
+
+// One call whatever the depth (a trailing "/" is added for folders).
+$folder = $client->sync()->folderAt($rootFolderId, 'backups/my-site');
+$file = $client->sync()->fileAt($rootFolderId, 'backups/my-site/2026-10-01.zip');
+
+// The other way round: id -> path relative to the root.
+$path = $client->sync()->objectPath($rootFolderId, ObjectType::File, $fileId);
+
+// Is a folder below a root? (true / false; 403 = below it but not accessible)
+$client->sync()->isChildOf($folderId, $rootFolderId);
+
+// Platform, user and folder quotas (bytes; null quota = unlimited).
+$quotas = $client->sync()->quotas($folderId);
+$quotas->getFolder()?->getRemaining();
+```
+
+## Deleting
+
+Deleted items go to the trash by default (recoverable). Pass
+`trash: false` to delete permanently, e.g. when rotating backups so the
+trash doesn't fill up the quota:
+
+```php
+use RocketC31\Voltn\Model\FileVersionScope;
+
+$client->files()->delete($fileId);                  // trash, all versions
+$client->files()->delete($fileId, trash: false);    // permanent
+$client->files()->delete($fileId, versions: FileVersionScope::None); // current version only
+$client->folders()->delete($folderId, trash: false);
+```
+
+Every version of a file shares the same `getGuid()`, whereas `getId()`
+designates one version.
+
 ## Impersonation
 
 If your application acts on behalf of other Voltn users, set a

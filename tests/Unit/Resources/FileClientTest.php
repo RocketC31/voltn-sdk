@@ -7,6 +7,7 @@ namespace RocketC31\Voltn\Tests\Unit\Resources;
 use PHPUnit\Framework\TestCase;
 use RocketC31\Voltn\Exception\NotFoundException;
 use RocketC31\Voltn\Http\HttpTransport;
+use RocketC31\Voltn\Model\FileVersionScope;
 use RocketC31\Voltn\Resources\FileClient;
 use RocketC31\Voltn\Tests\Support\MockTransportFactory;
 
@@ -152,6 +153,30 @@ final class FileClientTest extends TestCase
 
         $request = $factory->getLastRequest();
         self::assertSame('DELETE', $request->getMethod());
+        self::assertSame('https://tenant.example.test/api/file/123', (string) $request->getUri());
+    }
+
+    public function testDeleteCanBePermanentAndScopedToVersions(): void
+    {
+        $factory = new MockTransportFactory();
+        $factory->queueResponse(204, '');
+
+        $this->makeClient($factory)->delete(123, trash: false, versions: FileVersionScope::Previous);
+
+        self::assertSame(
+            'https://tenant.example.test/api/file/123?trash=0&versions=previous',
+            (string) $factory->getLastRequest()?->getUri(),
+        );
+    }
+
+    public function testDeleteToTrashAcceptsTheReturnedTrashObject(): void
+    {
+        $factory = new MockTransportFactory();
+        $factory->queueJson(200, ['id' => 5, 'name' => 'invoice.pdf']);
+
+        $this->makeClient($factory)->delete(123);
+
+        self::assertCount(1, $factory->getRequestHistory());
     }
 
     public function testExistsReturnsTrueWhenFileFound(): void

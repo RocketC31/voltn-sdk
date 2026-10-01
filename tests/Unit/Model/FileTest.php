@@ -124,4 +124,10 @@ final class FileTest extends TestCase
         self::assertCount(2, $file->getVersions());
         self::assertNull($file->getVersions()[0]->getId());
     }
+
+    public function testGuidIsMappedWhenPresent(): void
+    {
+        self::assertSame('00000-0000-00000-00000', File::fromArray(['id' => 1, 'guid' => '00000-0000-00000-00000'])->getGuid());
+        self::assertNull(File::fromArray(['id' => 1])->getGuid());
+    }
 }

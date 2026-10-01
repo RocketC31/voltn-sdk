@@ -1,0 +1,15 @@
+{
+    "platform": {
+        "quota": 10000000000,
+        "used": 2048000000
+    },
+    "user": {
+        "quota": null,
+        "used": 589412556
+    },
+    "folder": {
+        "quota": null,
+        "used": 5682555,
+        "folder": 142
+    }
+}

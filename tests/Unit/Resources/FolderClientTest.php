@@ -117,6 +117,16 @@ final class FolderClientTest extends TestCase
         self::assertSame('https://tenant.example.test/api/folder/99', (string) $request->getUri());
     }
 
+    public function testDeleteCanBePermanent(): void
+    {
+        $factory = new MockTransportFactory();
+        $factory->queueResponse(204, '');
+
+        $this->makeClient($factory)->delete(99, trash: false);
+
+        self::assertSame('https://tenant.example.test/api/folder/99?trash=0', (string) $factory->getLastRequest()?->getUri());
+    }
+
     public function testExistsReturnsTrueWhenFolderFound(): void
     {
         $factory = new MockTransportFactory();
