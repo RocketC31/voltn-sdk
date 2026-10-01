@@ -66,6 +66,17 @@ final class MockTransportFactory
         $this->mockHandler->append(new Response($status, $headers, $body));
     }
 
+    /**
+     * Queue a callable producing the response, invoked when the request is
+     * sent (e.g. to inspect a streamed body before it is consumed).
+     *
+     * @param callable(RequestInterface, array<string, mixed>): ResponseInterface $handler
+     */
+    public function queueCallback(callable $handler): void
+    {
+        $this->mockHandler->append($handler);
+    }
+
     public function queueException(Throwable $exception): void
     {
         $this->mockHandler->append($exception);

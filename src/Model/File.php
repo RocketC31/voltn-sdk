@@ -12,8 +12,8 @@ use DateTimeImmutable;
  * Note: Voltn does not expose a real MIME-type field on files, only
  * the coarse `file_type` (`image` / `document` / `video`, used by the web
  * UI to pick a preview icon) — there is intentionally no `getMimeType()`
- * accessor here. A future Flysystem adapter built on top of this SDK will
- * need to derive MIME type from the file extension itself.
+ * accessor here. The Flysystem adapter derives MIME types from the file
+ * extension instead.
  */
 final class File
 {

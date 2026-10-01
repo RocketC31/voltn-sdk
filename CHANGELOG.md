@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Flysystem v3 adapter `Flysystem\VoltnAdapter` (optional, requires
+  `league/flysystem` ^3.0): paths relative to a root folder resolved through
+  `SyncClient`, automatic creation of missing parent folders, streamed
+  reads/writes, TUS uploads above a configurable size threshold, trash or
+  permanent deletes, MIME types derived from the file extension.
+- Laravel integration (optional, Laravel 11 to 13): `Laravel\VoltnServiceProvider`,
+  auto-discovered, registers a `voltn` filesystem driver configured from the
+  disk array (`base_uri`, `client_id`, `client_secret`, `root`, `trash`,
+  `chunked_upload_threshold`, `chunk_size`, `timeout`, `connect_timeout`),
+  e.g. as a `spatie/laravel-backup` destination.
+- `Laravel\CacheTokenStorage`: a `TokenStorage` keeping the access token,
+  encrypted, in a Laravel cache repository until shortly before it expires.
+
 ## [0.2.0] - 2026-10-01
 
 ### Added

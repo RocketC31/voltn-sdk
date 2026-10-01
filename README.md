@@ -12,10 +12,11 @@ and the full OAuth2 flow. API reference: <https://api.voltn.eu/v4/>.
 > endorsed by, or supported by Voltn. "Voltn" and "NetExplorer" are
 > trademarks of their respective owner.
 
-This SDK is intended as the foundation for a `League\Flysystem` adapter,
-so that `spatie/laravel-backup` (and anything else built on Flysystem) can
-target Voltn the same way it targets S3 or Dropbox. This repository
-contains **only** the SDK: no Flysystem or Laravel code.
+On top of the framework-agnostic SDK, the package ships an optional
+[Flysystem v3](https://flysystem.thephpleague.com/) adapter and a Laravel
+`voltn` disk driver, so that `spatie/laravel-backup` (and anything else built
+on Flysystem) can target Voltn the same way it targets S3 or Dropbox. Both
+are opt-in: the core SDK does not depend on Flysystem or Laravel.
 
 ## Requirements
 
@@ -245,6 +246,100 @@ $client->folders()->delete($folderId, trash: false);
 Every version of a file shares the same `getGuid()`, whereas `getId()`
 designates one version.
 
+## Flysystem adapter
+
+Requires `league/flysystem` ^3.0:
+
+```bash
+composer require league/flysystem
+```
+
+```php
+use League\Flysystem\Filesystem;
+use RocketC31\Voltn\Flysystem\VoltnAdapter;
+
+$adapter = new VoltnAdapter(
+    $client,                 // a RocketC31\Voltn\Client
+    $rootFolderId,           // every Flysystem path is relative to this folder
+    trash: true,             // false = permanent deletes
+    chunkedUploadThreshold: 50 * 1024 * 1024, // bigger contents go through TUS
+    chunkSize: 8 * 1024 * 1024,
+);
+
+$filesystem = new Filesystem($adapter);
+$filesystem->writeStream('backups/my-site/2026-10-01.zip', fopen('/tmp/backup.zip', 'rb'));
+```
+
+Behaviour worth knowing:
+
+- Paths are resolved in a single call each through `$client->sync()`;
+  missing parent folders are created on write. `..` cannot escape the root.
+- Writing to an existing path creates a **new Voltn version** of the file
+  (the platform's native behaviour) rather than replacing it.
+- Streams whose size is known and larger than `chunkedUploadThreshold` are
+  uploaded through TUS; everything else in a single streamed multipart
+  upload. Nothing is buffered fully into memory.
+- **Visibility is not supported**: `setVisibility()` / `visibility()` throw.
+- **MIME types are derived from the file extension** (Voltn does not expose
+  one); the file must still exist.
+- Deleting a missing file or directory is a no-op; deleting the root is
+  refused. `move()` is a copy followed by a delete of the source.
+
+## Laravel
+
+The `voltn` disk driver is registered automatically (package
+auto-discovery) when `illuminate/support` and `illuminate/filesystem`
+(Laravel 11, 12 or 13) and `league/flysystem` are installed.
+
+```php
+// config/filesystems.php
+'disks' => [
+    'voltn' => [
+        'driver' => 'voltn',
+        'base_uri' => env('VOLTN_BASE_URI'),           // https://tenant.voltn.example
+        'client_id' => env('VOLTN_CLIENT_ID'),
+        'client_secret' => env('VOLTN_CLIENT_SECRET'),
+        'root' => env('VOLTN_ROOT_FOLDER_ID'),         // id of the folder used as the disk root
+        'trash' => false, // permanent deletes, e.g. for backup rotation
+        // Optional:
+        // 'chunked_upload_threshold' => 52428800,     // bytes, TUS above this
+        // 'chunk_size' => 8388608,                    // bytes per TUS chunk
+        // 'timeout' => 30,                            // seconds, per HTTP request
+        // 'connect_timeout' => 5,                     // seconds
+    ],
+],
+```
+
+```php
+Storage::disk('voltn')->put('reports/2026-10.csv', $csv);
+```
+
+`base_uri`, `client_id`, `client_secret` and `root` are required (an
+`InvalidArgumentException` is thrown otherwise). The disk authenticates with
+`client_credentials`; the access token is cached, encrypted with the
+application key, in the default cache store (`CacheTokenStorage`), so that
+successive requests and jobs don't fetch a new token every time. When
+`guzzlehttp/guzzle` is installed it is used with the configured timeouts;
+otherwise the PSR-18 client is auto-discovered. `timeout` bounds each HTTP
+request as a whole: keep it large enough for one chunk (or one upload below
+`chunked_upload_threshold`) and for downloads on your bandwidth, or set it to
+`0` to disable it.
+
+### With spatie/laravel-backup
+
+Add the disk to the backup destinations:
+
+```php
+// config/backup.php
+'destination' => [
+    'disks' => ['voltn'],
+],
+```
+
+Use `'trash' => false` on the disk: old backups removed by the cleanup task
+are then deleted permanently instead of piling up in the Voltn trash, which
+would otherwise keep eating the quota.
+
 ## Impersonation
 
 If your application acts on behalf of other Voltn users, set a
@@ -289,8 +384,7 @@ try {
 ```
 
 `FolderClient::exists()` and `FileClient::exists()` catch `NotFoundException`
-for you and return a plain `bool` — handy for a future Flysystem adapter's
-`fileExists()`/`directoryExists()`.
+for you and return a plain `bool`.
 
 ## A note on the API base path
 
@@ -337,10 +431,8 @@ Deliberately out of scope for this SDK (v1):
 - Rate-limit handling — Voltn does not document any rate limiting.
 - A `mimeType()` accessor on `File` — Voltn only exposes a coarse
   `file_type` (`image` / `document` / `video`) for preview purposes, not a
-  real MIME type. A future Flysystem adapter built on top of this SDK will
-  need to derive MIME type from the file extension itself.
-- The Flysystem adapter and Laravel integration themselves — to be built
-  in a separate repository on top of this SDK.
+  real MIME type. The Flysystem adapter derives MIME types from the file
+  extension instead.
 
 ## License
 
